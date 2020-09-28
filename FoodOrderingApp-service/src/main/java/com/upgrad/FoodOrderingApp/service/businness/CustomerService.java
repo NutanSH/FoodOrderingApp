@@ -36,7 +36,7 @@ public class CustomerService {
             throw new SignUpRestrictedException("SGR-005", "Except last name all fields should be filled");
         }
 
-        if (!checkEmailAdress(customerEntity.getEmail())) {
+        if (!checkEmailAddress(customerEntity.getEmail())) {
             throw new SignUpRestrictedException("SGR-002", "Invalid email-id format!");
         }
 
@@ -44,7 +44,10 @@ public class CustomerService {
             throw new SignUpRestrictedException("SGR-003", "Invalid contact number!");
         }
 
-        if (!checkPassword(customerEntity.getPassword())) {
+        if(customerEntity.getPassword().length() < 8
+                || !customerEntity.getPassword().matches(".*[0-9]+.*")
+                || !customerEntity.getPassword().matches(".*[A-Z]+.*")
+                || !customerEntity.getPassword().matches(".*[#@$%&*!^]+.*")){
             throw new SignUpRestrictedException("SGR-004", "Weak password!");
         }
 
@@ -62,7 +65,7 @@ public class CustomerService {
         return customerDao.customerByContactNumber(contactNumber) != null;
     }
 
-    public boolean checkEmailAdress(final String email) {
+    public boolean checkEmailAddress(final String email) {
         String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\." +
                 "[a-zA-Z0-9_+&*-]+)*@" +
                 "(?:[a-zA-Z0-9-]+\\.)+[a-z" +
@@ -195,7 +198,10 @@ public class CustomerService {
             throw new AuthorizationFailedException("ATHR-002", "Customer is logged out. Log in again to access this endpoint.");
         }else if(now.isAfter(customerAuthToken.getExpiresAt())){
             throw new AuthorizationFailedException("ATHR-002", "Your session is expired. Log in again to access this endpoint.");
-        }else if (!checkPassword(newPassword)) {
+        }else if (newPassword.length() < 8
+                || !newPassword.matches(".*[0-9]+.*")
+                || !newPassword.matches(".*[A-Z]+.*")
+                || !newPassword.matches(".*[#@$%&*!^]+.*")) {
             throw new UpdateCustomerException("UCR-001", "Weak password!");
         }
 
