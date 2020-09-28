@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-
+@CrossOrigin
 @RestController
 @RequestMapping("/")
 public class AddressController {
@@ -57,6 +57,7 @@ public class AddressController {
             StateEntity se = addressService.getStateById(ae.getState().getId());
 
             AddressListState addressListState = new AddressListState();
+            addressListState.setId(UUID.fromString(se.getUuid()));
             addressListState.setStateName(se.getStateName());
 
             AddressList addressList = new AddressList().id(UUID.fromString(ae.getUuid())).city(ae.getCity())

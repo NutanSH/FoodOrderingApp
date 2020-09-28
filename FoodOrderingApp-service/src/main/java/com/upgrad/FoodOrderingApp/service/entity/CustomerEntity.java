@@ -2,30 +2,34 @@ package com.upgrad.FoodOrderingApp.service.entity;
 
 import org.apache.commons.lang3.builder.ToStringExclude;
 
+import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import java.io.Serializable;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 
 @Entity
-@Table(name = "CUSTOMER")
+@Table(name = "customer")
 @NamedQueries(
         {
                 @NamedQuery(name = "customerByUuid", query = "select c from CustomerEntity c where c.uuid = :uuid"),
-                @NamedQuery(name = "customerByContactNumber", query = "select c from CustomerEntity c where c.contactNum = :contactNumber"),
+                @NamedQuery(name = "customerByContactNumber", query = "select c from CustomerEntity c where c.contactNumber = :contactNumber"),
                 @NamedQuery(name = "customerByEmail", query = "select c from CustomerEntity c where c.email =:email"),
                 @NamedQuery(name = "customerById", query = "select c from CustomerEntity c where c.id = :id"),
         }
 )
 
 public class CustomerEntity implements Serializable {
-
     @Id
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long  id;
 
     @Column(name = "UUID")
+    @NotNull
     @Size(max = 200)
     private String uuid;
 
@@ -41,31 +45,29 @@ public class CustomerEntity implements Serializable {
 
     @Column(name = "EMAIL")
     @NotNull
-    @Size(max = 30)
+    @Size(max = 50)
     private String email;
 
     @Column(name = "CONTACT_NUMBER")
-    @NotNull
     @Size(max = 30)
-    private String contactNum;
+    private String contactNumber;
 
     @Column(name = "PASSWORD")
-    @NotNull
-    @Size(max = 255)
     @ToStringExclude
+    @Size(max = 255)
     private String password;
 
     @Column(name = "SALT")
     @NotNull
-    @Size(max = 200)
+    @Size(max = 255)
     @ToStringExclude
     private String salt;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -101,12 +103,12 @@ public class CustomerEntity implements Serializable {
         this.email = email;
     }
 
-    public String getContactNum() {
-        return contactNum;
+    public String getContactNumber() {
+        return contactNumber;
     }
 
-    public void setContactNum(String contactNum) {
-        this.contactNum = contactNum;
+    public void setContactNumber(String contactNumber) {
+        this.contactNumber = contactNumber;
     }
 
     public String getPassword() {
@@ -124,4 +126,5 @@ public class CustomerEntity implements Serializable {
     public void setSalt(String salt) {
         this.salt = salt;
     }
+
 }

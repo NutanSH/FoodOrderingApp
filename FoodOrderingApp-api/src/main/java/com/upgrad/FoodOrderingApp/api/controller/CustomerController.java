@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -29,63 +28,59 @@ public class CustomerController {
     @Autowired
     private CustomerService customerBusinessService;
 
-    @CrossOrigin
-    @RequestMapping(method = RequestMethod.POST, path = "/customer/signup", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(method = RequestMethod.POST, path="/customer/signup", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<SignupCustomerResponse> signUp(final SignupCustomerRequest signupCustomerRequest) throws SignUpRestrictedException {
 
-
-        CustomerEntity customerEntity = new CustomerEntity();
+        final CustomerEntity customerEntity = new CustomerEntity();
         customerEntity.setUuid(UUID.randomUUID().toString());
         customerEntity.setFirstName(signupCustomerRequest.getFirstName());
         customerEntity.setLastName(signupCustomerRequest.getLastName());
-        customerEntity.setContactNum(signupCustomerRequest.getContactNumber());
         customerEntity.setEmail(signupCustomerRequest.getEmailAddress());
+        customerEntity.setContactNumber(signupCustomerRequest.getContactNumber());
         customerEntity.setPassword(signupCustomerRequest.getPassword());
 
-        CustomerEntity customer = customerBusinessService.signUp(customerEntity);
-        return new ResponseEntity<SignupCustomerResponse>(new SignupCustomerResponse().id(customer.getUuid()).status("CUSTOMER SUCCESSFULLY REGISTERED"), HttpStatus.CREATED);
+        final CustomerEntity customer = customerBusinessService.signUp(customerEntity);
+
+        return new ResponseEntity<SignupCustomerResponse>
+                (new SignupCustomerResponse().id(customer.getUuid()).status("CUSTOMER SUCCESSFULLY REGISTERED"), HttpStatus.CREATED);
     }
 
-    @CrossOrigin
-    @RequestMapping(method = RequestMethod.POST, path = "/customer/login", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<LoginResponse> login(@RequestHeader("authorization") final String authorization, HttpSession session) throws AuthenticationFailedException {
+    @RequestMapping(method = RequestMethod.POST , path="/customer/login" ,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<LoginResponse> login(@RequestHeader("authorization")  final String authorization) throws AuthenticationFailedException {
 
-        final byte[] decode;
-        try {
-            decode = Base64.getDecoder().decode(authorization.split("Basic ")[1]);
-        } catch(ArrayIndexOutOfBoundsException e) {
+        if(authorization ==null || !authorization.startsWith("Basic ")){
             throw new AuthenticationFailedException("ATH-003", "Incorrect format of decoded customer name and password");
         }
+
+        final byte[] decode = Base64.getDecoder().decode(authorization.split("Basic ")[1]);
         String decodedText = new String(decode);
         if (!decodedText.matches("([0-9]+):(.+?)")) {
             throw new AuthenticationFailedException("ATH-003", "Incorrect format of decoded customer name and password");
         }
         final String[] decodedArray = decodedText.split(":");
 
-        final CustomerAuthTokenEntity authTokenEntity = customerBusinessService.login(decodedArray[0], decodedArray[1]);
-        final CustomerEntity customer = authTokenEntity.getCustomer();
+        final CustomerAuthTokenEntity customerAuthTokenEntity = customerBusinessService.login(decodedArray[0], decodedArray[1]);
+        final CustomerEntity customerEntity = customerAuthTokenEntity.getCustomer();
 
         HttpHeaders httpHeaders = new HttpHeaders();
         List<String> header = new ArrayList<>();
         header.add("access-token");
-        httpHeaders.add("access_token",authTokenEntity.getAccessToken());
+        httpHeaders.add("access_token",customerAuthTokenEntity.getAccessToken());
         httpHeaders.setAccessControlExposeHeaders(header);
 
-        LoginResponse loginResponse = new LoginResponse();
-        loginResponse.setId(customer.getUuid());
-        loginResponse.setFirstName(customer.getFirstName());
-        loginResponse.setLastName(customer.getLastName());
-        loginResponse.setEmailAddress(customer.getEmail());
-        loginResponse.setContactNumber(customer.getContactNum());
-        loginResponse.setMessage("LOGGED IN SUCCESSFULLY");
+        LoginResponse loginResponse = new LoginResponse()
+                .id(customerEntity.getUuid())
+                .message("LOGGED IN SUCCESSFULLY")
+                .firstName(customerEntity.getFirstName())
+                .lastName(customerEntity.getLastName())
+                .emailAddress(customerEntity.getEmail())
+                .contactNumber(customerEntity.getContactNumber());
 
         return new ResponseEntity<LoginResponse>(loginResponse,httpHeaders,HttpStatus.OK);
-
     }
 
-    @CrossOrigin
-    @RequestMapping(method = RequestMethod.POST, path = "/customer/logout", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<LogoutResponse> logout(@RequestHeader("authorization") final String authorization) throws AuthorizationFailedException {
+    @RequestMapping(method= RequestMethod.POST, path="/customer/logout", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<LogoutResponse>logout(@RequestHeader("authorization") final String authorization) throws AuthorizationFailedException {
 
         String[] bearerToken = authorization.split( "Bearer ");
         final CustomerAuthTokenEntity customerAuthTokenEntity = customerBusinessService.logout(bearerToken[1]);
@@ -93,7 +88,7 @@ public class CustomerController {
 
         return new ResponseEntity<LogoutResponse>
                 (new LogoutResponse().id(customerEntity.getUuid()).message("LOGGED OUT SUCCESSFULLY"),HttpStatus.OK);
-        }
+    }
 
     @RequestMapping(method = RequestMethod.PUT, path = "/customer",consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<UpdateCustomerResponse> updateCustomer(final UpdateCustomerRequest updateCustomerRequest,@RequestHeader("authorization") final String authorization) throws AuthorizationFailedException, UpdateCustomerException {
@@ -104,7 +99,7 @@ public class CustomerController {
 
         String[] bearerToken = authorization.split( "Bearer ");
 
-        final CustomerEntity customerEntity = customerBusinessService.updateCustomer(bearerToken[1], updatedCustomerEntity);
+        final CustomerEntity customerEntity = customerBusinessService.update(bearerToken[1], updatedCustomerEntity);
 
         UpdateCustomerResponse updateCustomerResponse = new UpdateCustomerResponse()
                 .id(customerEntity.getUuid())
@@ -127,4 +122,5 @@ public class CustomerController {
         return new ResponseEntity<UpdatePasswordResponse>
                 (new UpdatePasswordResponse().id(customerEntity.getUuid()).status("CUSTOMER PASSWORD UPDATED SUCCESSFULLY"),HttpStatus.OK);
     }
+
 }
