@@ -23,116 +23,73 @@ public class CustomerService {
     private CustomerDao customerDao;
 
     @Autowired
-    private PasswordCryptographyProvider cryptographyProvider;
+    private PasswordCryptographyProvider passwordCryptographyProvider;
+
+    private static final String EMAIL_PATTERN = "^[a-zA-Z0-9_+&*-]+(?:\\." + "[a-zA-Z0-9_+&*-]+)*@" +
+            "(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$";
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public CustomerEntity signUp(final CustomerEntity customerEntity) throws SignUpRestrictedException {
+    public CustomerEntity signUp(CustomerEntity customerEntity) throws SignUpRestrictedException {
 
-        if (checkExistingContactNumber(customerEntity.getContactNum())) {
+        Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+
+        if(customerDao.customerByContactNumber(customerEntity.getContactNumber()) != null){
             throw new SignUpRestrictedException("SGR-001", "This contact number is already registered! Try other contact number.");
         }
-
-        if (checkEmptyFields(customerEntity)){
+        else if (customerEntity.getFirstName() == null || customerEntity.getEmail() == null ||
+                customerEntity.getContactNumber() == null || customerEntity.getPassword() == null) {
             throw new SignUpRestrictedException("SGR-005", "Except last name all fields should be filled");
         }
-
-        if (!checkEmailAdress(customerEntity.getEmail())) {
+        else if(!pattern.matcher(customerEntity.getEmail()).matches()){
             throw new SignUpRestrictedException("SGR-002", "Invalid email-id format!");
         }
-
-        if (!checkContactNumber(customerEntity.getContactNum())) {
+        else if(!customerEntity.getContactNumber().matches("[0-9]+") || customerEntity.getContactNumber().length() != 10){
             throw new SignUpRestrictedException("SGR-003", "Invalid contact number!");
         }
-
-        if (!checkPassword(customerEntity.getPassword())) {
+        else if(customerEntity.getPassword().length() < 8
+                || !customerEntity.getPassword().matches(".*[0-9]+.*")
+                || !customerEntity.getPassword().matches(".*[A-Z]+.*")
+                || !customerEntity.getPassword().matches(".*[#@$%&*!^]+.*")){
             throw new SignUpRestrictedException("SGR-004", "Weak password!");
         }
 
         final String password = customerEntity.getPassword();
-
-        final String[] encryptedText = cryptographyProvider.encrypt(password);
-
+        final String[] encryptedText = passwordCryptographyProvider.encrypt(password);
         customerEntity.setSalt(encryptedText[0]);
         customerEntity.setPassword(encryptedText[1]);
 
-        return customerDao.signUp(customerEntity);
-    }
-
-    public boolean checkExistingContactNumber(final String contactNumber) {
-        return customerDao.customerByContactNumber(contactNumber) != null;
-    }
-
-    public boolean checkEmailAdress(final String email) {
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\." +
-                "[a-zA-Z0-9_+&*-]+)*@" +
-                "(?:[a-zA-Z0-9-]+\\.)+[a-z" +
-                "A-Z]{2,7}$";
-        Pattern pat = Pattern.compile(emailRegex);
-
-        if (email == null)
-            return false;
-        return pat.matcher(email).matches();
-    }
-
-    public boolean checkContactNumber(String contactNum) {
-        String regex = "\\d{10}";
-        Pattern pat = Pattern.compile(regex);
-
-        if (contactNum == null)
-            return false;
-        return pat.matcher(contactNum).matches();
-    }
-
-    public boolean checkPassword(String password) {
-        String PASSWORD_PATTERN = "((?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&]).{3,})";
-        boolean flag = false;
-        Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
-        if (password == null)
-            return false;
-        return pattern.matcher(password).matches();
-    }
-
-    public boolean checkEmptyFields(CustomerEntity customerEntity){
-
-        if(customerEntity.getFirstName() == null || customerEntity.getEmail() == null ||
-                customerEntity.getContactNum() == null || customerEntity.getPassword() == null)
-            return true;
-        return false;
+        return customerDao.customerSignUp(customerEntity);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public CustomerAuthTokenEntity login(final String contactNumber, final String password) throws AuthenticationFailedException {
+    public CustomerAuthTokenEntity login(final String contactNumber,final String password) throws AuthenticationFailedException {
 
-        final CustomerEntity customer = customerDao.customerByContactNumber(contactNumber);
+        CustomerEntity customerEntity = customerDao.customerByContactNumber(contactNumber);
 
-        if (customer == null)
+        if(customerEntity == null){
             throw new AuthenticationFailedException("ATH-001", "This contact number has not been registered!");
+        }
 
-        final String encryptedPassword = PasswordCryptographyProvider.encrypt(password, customer.getSalt());
+        final String encryptedPassword = PasswordCryptographyProvider.encrypt(password,customerEntity.getSalt());
 
-        if (encryptedPassword.equals(customer.getPassword())) {
-
+        if(customerEntity.getPassword().equals(encryptedPassword)){
             JwtTokenProvider jwtTokenProvider = new JwtTokenProvider(encryptedPassword);
             CustomerAuthTokenEntity customerAuthTokenEntity = new CustomerAuthTokenEntity();
             customerAuthTokenEntity.setUuid(UUID.randomUUID().toString());
-            customerAuthTokenEntity.setCustomer(customer);
-
+            customerAuthTokenEntity.setCustomer(customerEntity);
             final ZonedDateTime now = ZonedDateTime.now();
             final ZonedDateTime expiresAt = now.plusHours(8);
 
-            customerAuthTokenEntity.setAccessToken(jwtTokenProvider.generateToken(customer.getUuid(), now, expiresAt));
+            customerAuthTokenEntity.setAccessToken(jwtTokenProvider.generateToken(customerEntity.getUuid(),now,expiresAt));
             customerAuthTokenEntity.setLoginAt(now);
             customerAuthTokenEntity.setExpiresAt(expiresAt);
 
-            customerDao.createAuthToken(customerAuthTokenEntity);
-            customerDao.updateCustomer(customer);
-
+            customerDao.createCustomerAuthToken(customerAuthTokenEntity);
+            customerDao.updateCustomer(customerEntity);
             return customerAuthTokenEntity;
-
-        } else {
+        }else{
             throw new AuthenticationFailedException("ATH-002", "Invalid Credentials");
         }
-
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -150,12 +107,12 @@ public class CustomerService {
         }
 
         customerAuthToken.setLogoutAt(now);
-        customerDao.updateCustomerAuth(customerAuthToken);
+        customerDao.updateCustomerAuthToken(customerAuthToken);
         return customerAuthToken;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public CustomerEntity updateCustomer(final String authorizationToken,final CustomerEntity updatedCustomerEntity) throws UpdateCustomerException, AuthorizationFailedException {
+    public CustomerEntity update(final String authorizationToken,final CustomerEntity updatedCustomerEntity) throws UpdateCustomerException, AuthorizationFailedException {
 
         final CustomerAuthTokenEntity customerAuthToken = customerDao.getCustomerAuthToken(authorizationToken);
         final ZonedDateTime now = ZonedDateTime.now();
@@ -195,7 +152,10 @@ public class CustomerService {
             throw new AuthorizationFailedException("ATHR-002", "Customer is logged out. Log in again to access this endpoint.");
         }else if(now.isAfter(customerAuthToken.getExpiresAt())){
             throw new AuthorizationFailedException("ATHR-002", "Your session is expired. Log in again to access this endpoint.");
-        }else if (!checkPassword(newPassword)) {
+        }else if (newPassword.length() < 8
+                || !newPassword.matches(".*[0-9]+.*")
+                || !newPassword.matches(".*[A-Z]+.*")
+                || !newPassword.matches(".*[#@$%&*!^]+.*")) {
             throw new UpdateCustomerException("UCR-001", "Weak password!");
         }
 
@@ -208,7 +168,7 @@ public class CustomerService {
 
         customerEntity.setPassword(newPassword);
         final String password = customerEntity.getPassword();
-        final String[] encryptedText = cryptographyProvider.encrypt(password);
+        final String[] encryptedText = passwordCryptographyProvider.encrypt(password);
         customerEntity.setSalt(encryptedText[0]);
         customerEntity.setPassword(encryptedText[1]);
 
