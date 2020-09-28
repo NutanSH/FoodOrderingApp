@@ -16,9 +16,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/")
 public class CustomerController {
@@ -54,13 +57,19 @@ public class CustomerController {
             throw new AuthenticationFailedException("ATH-003", "Incorrect format of decoded customer name and password");
         }
         String decodedText = new String(decode);
+        if (!decodedText.matches("([0-9]+):(.+?)")) {
+            throw new AuthenticationFailedException("ATH-003", "Incorrect format of decoded customer name and password");
+        }
         final String[] decodedArray = decodedText.split(":");
 
         final CustomerAuthTokenEntity authTokenEntity = customerBusinessService.login(decodedArray[0], decodedArray[1]);
         final CustomerEntity customer = authTokenEntity.getCustomer();
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("access_token", authTokenEntity.getAccessToken());
+        List<String> header = new ArrayList<>();
+        header.add("access-token");
+        httpHeaders.add("access_token",authTokenEntity.getAccessToken());
+        httpHeaders.setAccessControlExposeHeaders(header);
 
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setId(customer.getUuid());
@@ -70,7 +79,7 @@ public class CustomerController {
         loginResponse.setContactNumber(customer.getContactNum());
         loginResponse.setMessage("LOGGED IN SUCCESSFULLY");
 
-        return new ResponseEntity<LoginResponse>(loginResponse, HttpStatus.OK);
+        return new ResponseEntity<LoginResponse>(loginResponse,httpHeaders,HttpStatus.OK);
 
     }
 

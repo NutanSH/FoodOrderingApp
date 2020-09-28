@@ -1,5 +1,7 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
+import org.apache.commons.lang3.builder.ToStringExclude;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -50,11 +52,13 @@ public class CustomerEntity implements Serializable {
     @Column(name = "PASSWORD")
     @NotNull
     @Size(max = 255)
+    @ToStringExclude
     private String password;
 
     @Column(name = "SALT")
     @NotNull
     @Size(max = 200)
+    @ToStringExclude
     private String salt;
 
     public Integer getId() {
