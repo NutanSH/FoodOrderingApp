@@ -27,7 +27,6 @@ io\swagger\api\ApiException.class
 com\upgrad\FoodOrderingApp\api\model\CategoryListResponse.class
 com\upgrad\FoodOrderingApp\api\model\OrderListCoupon.class
 com\upgrad\FoodOrderingApp\api\model\UpdatePasswordResponse.class
-com\upgrad\FoodOrderingApp\api\controller\CustomerController.class
 com\upgrad\FoodOrderingApp\api\model\PaymentResponse.class
 com\upgrad\FoodOrderingApp\api\model\AddressList.class
 com\upgrad\FoodOrderingApp\api\model\LogoutResponse.class
@@ -38,7 +37,6 @@ com\upgrad\FoodOrderingApp\api\model\SaveOrderRequest.class
 com\upgrad\FoodOrderingApp\api\model\OrderListAddress.class
 com\upgrad\FoodOrderingApp\api\model\UpdatePasswordRequest.class
 com\upgrad\FoodOrderingApp\api\model\ItemQuantity.class
-com\upgrad\FoodOrderingApp\api\controller\AddressController.class
 com\upgrad\FoodOrderingApp\api\model\OrderListAddressState.class
 com\upgrad\FoodOrderingApp\api\model\CouponDetailsResponse.class
 com\upgrad\FoodOrderingApp\api\model\ItemQuantityResponseItem.class
@@ -47,7 +45,6 @@ io\swagger\Swagger2SpringBoot.class
 io\swagger\api\ApiOriginFilter.class
 com\upgrad\FoodOrderingApp\api\FoodOrderingAppApiApplication.class
 com\upgrad\FoodOrderingApp\api\model\RestaurantListResponse.class
-com\upgrad\FoodOrderingApp\api\exception\RestExceptionHandler.class
 com\upgrad\FoodOrderingApp\api\model\RestaurantList.class
 com\upgrad\FoodOrderingApp\api\model\UpdateCustomerRequest.class
 com\upgrad\FoodOrderingApp\api\model\OrderListPayment.class

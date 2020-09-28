@@ -1,9 +1,5 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -14,7 +10,7 @@ import java.io.Serializable;
 import java.time.ZonedDateTime;
 
 @Entity
-@Table(name = "CUSTOMER_AUTH")
+@Table(name = "customer_auth")
 @NamedQueries({
         @NamedQuery(name = "customerAuthTokenByAccessToken", query = "select ct from CustomerAuthTokenEntity ct where ct.accessToken =:accessToken")
 })
@@ -23,13 +19,14 @@ public class CustomerAuthTokenEntity implements Serializable {
     @Id
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long  id;
 
     @Column(name = "UUID")
+    @NotNull
     @Size(max = 200)
     private String uuid;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "CUSTOMER_ID")
     private CustomerEntity customer;
@@ -39,10 +36,6 @@ public class CustomerAuthTokenEntity implements Serializable {
     @Size(max = 500)
     private String accessToken;
 
-    @Column(name = "EXPIRES_AT")
-    @NotNull
-    private ZonedDateTime expiresAt;
-
     @Column(name = "LOGIN_AT")
     @NotNull
     private ZonedDateTime loginAt;
@@ -50,12 +43,15 @@ public class CustomerAuthTokenEntity implements Serializable {
     @Column(name = "LOGOUT_AT")
     private ZonedDateTime logoutAt;
 
+    @Column(name = "EXPIRES_AT")
+    @NotNull
+    private ZonedDateTime expiresAt;
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -83,14 +79,6 @@ public class CustomerAuthTokenEntity implements Serializable {
         this.accessToken = accessToken;
     }
 
-    public ZonedDateTime getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(ZonedDateTime expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-
     public ZonedDateTime getLoginAt() {
         return loginAt;
     }
@@ -107,18 +95,11 @@ public class CustomerAuthTokenEntity implements Serializable {
         this.logoutAt = logoutAt;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return new EqualsBuilder().append(this, obj).isEquals();
+    public ZonedDateTime getExpiresAt() {
+        return expiresAt;
     }
 
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder().append(this).hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+    public void setExpiresAt(ZonedDateTime expiresAt) {
+        this.expiresAt = expiresAt;
     }
 }
