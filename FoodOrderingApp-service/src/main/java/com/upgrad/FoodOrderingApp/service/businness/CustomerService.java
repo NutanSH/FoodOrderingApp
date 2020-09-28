@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Service
-public class CustomerBusinessService {
+public class CustomerService {
 
     @Autowired
     private CustomerDao customerDao;

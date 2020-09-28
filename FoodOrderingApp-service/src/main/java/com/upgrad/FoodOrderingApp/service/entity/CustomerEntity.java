@@ -7,9 +7,15 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "CUSTOMER")
-@NamedQueries({
-        @NamedQuery(name = "customerByContactNumber", query = "select c from CustomerEntity c where c.contactNum = :contactNumber")
-})
+@NamedQueries(
+        {
+                @NamedQuery(name = "customerByUuid", query = "select c from CustomerEntity c where c.uuid = :uuid"),
+                @NamedQuery(name = "customerByContactNumber", query = "select c from CustomerEntity c where c.contactNum = :contactNumber"),
+                @NamedQuery(name = "customerByEmail", query = "select c from CustomerEntity c where c.email =:email"),
+                @NamedQuery(name = "customerById", query = "select c from CustomerEntity c where c.id = :id"),
+        }
+)
+
 public class CustomerEntity implements Serializable {
 
     @Id
