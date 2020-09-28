@@ -78,10 +78,13 @@ public class CustomerController {
     @RequestMapping(method = RequestMethod.POST, path = "/customer/logout", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<LogoutResponse> logout(@RequestHeader("authorization") final String authorization) throws AuthorizationFailedException {
 
-        final CustomerEntity customerEntity = customerBusinessService.logout(authorization);
+        String[] bearerToken = authorization.split( "Bearer ");
+        final CustomerAuthTokenEntity customerAuthTokenEntity = customerBusinessService.logout(bearerToken[1]);
+        final CustomerEntity customerEntity = customerAuthTokenEntity.getCustomer();
 
-        return new ResponseEntity<LogoutResponse>(new LogoutResponse().id(customerEntity.getUuid()).message("LOGGED OUT SUCCESSFULLY"), HttpStatus.OK);
-    }
+        return new ResponseEntity<LogoutResponse>
+                (new LogoutResponse().id(customerEntity.getUuid()).message("LOGGED OUT SUCCESSFULLY"),HttpStatus.OK);
+        }
 
     @RequestMapping(method = RequestMethod.PUT, path = "/customer",consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<UpdateCustomerResponse> updateCustomer(final UpdateCustomerRequest updateCustomerRequest,@RequestHeader("authorization") final String authorization) throws AuthorizationFailedException, UpdateCustomerException {
