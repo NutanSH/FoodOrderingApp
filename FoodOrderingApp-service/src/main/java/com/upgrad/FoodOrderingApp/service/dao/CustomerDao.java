@@ -14,15 +14,16 @@ public class CustomerDao {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public CustomerEntity signUp(CustomerEntity customerEntity) {
+    public CustomerEntity customerSignUp(CustomerEntity customerEntity){
         entityManager.persist(customerEntity);
         return customerEntity;
     }
 
-    public CustomerEntity customerByContactNumber(String contactNumber) {
-        try {
-            return entityManager.createNamedQuery("customerByContactNumber", CustomerEntity.class).setParameter("contactNumber", contactNumber).getSingleResult();
-        } catch (NoResultException nre) {
+    public CustomerEntity customerByContactNumber(String contactNumber){
+        try{
+            return entityManager.createNamedQuery("customerByContactNumber",CustomerEntity.class)
+                    .setParameter("contactNumber",contactNumber).getSingleResult();
+        }catch (NoResultException nre){
             return null;
         }
     }
@@ -36,30 +37,26 @@ public class CustomerDao {
         }
     }
 
-    public CustomerAuthTokenEntity createAuthToken(CustomerAuthTokenEntity customerAuthTokenEntity) {
+    public CustomerAuthTokenEntity createCustomerAuthToken(CustomerAuthTokenEntity customerAuthTokenEntity){
         entityManager.persist(customerAuthTokenEntity);
         return customerAuthTokenEntity;
     }
 
-    public void updateCustomer(CustomerEntity customerEntity) {
+    public void updateCustomer(CustomerEntity customerEntity){
         entityManager.merge(customerEntity);
     }
 
-    public CustomerAuthTokenEntity getCustomerAuthToken(String accessToken) {
-        try {
-            return entityManager.createNamedQuery("customerAuthTokenByAccessToken", CustomerAuthTokenEntity.class)
-                    .setParameter("accessToken", accessToken).getSingleResult();
-
-        } catch (NoResultException nre) {
+    public CustomerAuthTokenEntity getCustomerAuthToken(String accessToken){
+        try{
+            return entityManager.createNamedQuery("customerAuthTokenByAccessToken",CustomerAuthTokenEntity.class)
+                    .setParameter("accessToken",accessToken).getSingleResult();
+        }catch(NoResultException nre){
             return null;
         }
     }
 
-    public void updateCustomerAuth(CustomerAuthTokenEntity customerAuthTokenEntity) {
+    public void updateCustomerAuthToken(CustomerAuthTokenEntity customerAuthTokenEntity){
         entityManager.merge(customerAuthTokenEntity);
     }
 
-    public void updatePassword(CustomerEntity customerEntity) {
-        entityManager.merge(customerEntity);
-    }
 }
