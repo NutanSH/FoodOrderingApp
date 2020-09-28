@@ -50,6 +50,11 @@ public class AddressService {
         return addressDao.getAddressById(addressId);
     }
 
+    @Transactional
+    public AddressEntity getAddressByUuid(final String addressUuid) {
+        return addressDao.getAddressByUuid(addressUuid);
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public AddressEntity saveAddress(AddressEntity addressEntity, final String authorizationToken)
             throws AuthorizationFailedException, SaveAddressException, AddressNotFoundException {
