@@ -1,5 +1,6 @@
 package com.upgrad.FoodOrderingApp.service.dao;
 
+import com.upgrad.FoodOrderingApp.service.entity.CouponEntity;
 import com.upgrad.FoodOrderingApp.service.entity.CustomerEntity;
 import com.upgrad.FoodOrderingApp.service.entity.OrdersEntity;
 import com.upgrad.FoodOrderingApp.service.entity.RestaurantEntity;
@@ -38,4 +39,14 @@ public class OrderDao {
             return null;
         }
     }
+
+    public CouponEntity getCouponByName(String couponName) {
+        try {
+            return entityManager.createNamedQuery("couponByName", CouponEntity.class).setParameter("couponName", couponName)
+                    .getSingleResult();
+        } catch(NoResultException nre) {
+            return null;
+        }
+    }
+
 }

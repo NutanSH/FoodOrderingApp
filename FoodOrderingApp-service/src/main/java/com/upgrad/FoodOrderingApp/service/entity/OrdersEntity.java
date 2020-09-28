@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 
 @Entity
@@ -35,7 +36,7 @@ public class OrdersEntity implements Serializable {
 
     @Column(name="BILL")
     @NotNull
-    private BigDecimal bill;
+    private double bill;
 
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -43,7 +44,7 @@ public class OrdersEntity implements Serializable {
     private CouponEntity coupon;
 
     @Column(name="DISCOUNT")
-    private BigDecimal discount;
+    private double discount;
 
     @Column(name="DATE")
     @NotNull
@@ -85,11 +86,11 @@ public class OrdersEntity implements Serializable {
         this.uuid = uuid;
     }
 
-    public BigDecimal getBill() {
+    public double getBill() {
         return bill;
     }
 
-    public void setBill(BigDecimal bill) {
+    public void setBill(double bill) {
         this.bill = bill;
     }
 
@@ -101,11 +102,11 @@ public class OrdersEntity implements Serializable {
         this.coupon = coupon;
     }
 
-    public BigDecimal getDiscount() {
+    public double getDiscount() {
         return discount;
     }
 
-    public void setDiscount(BigDecimal discount) {
+    public void setDiscount(double discount) {
         this.discount = discount;
     }
 

@@ -176,4 +176,9 @@ public class CustomerService {
         return customerEntity;
     }
 
+    @Transactional
+    public CustomerAuthTokenEntity getCustomerAuthToken(final String accessToken) {
+        return customerDao.getCustomerAuthToken(accessToken);
+    }
+
 }
